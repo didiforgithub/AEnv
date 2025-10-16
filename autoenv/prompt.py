@@ -422,7 +422,7 @@ CODE_FOR_RUN_ENV_MAIN_USE = """
 import os
 import sys
 main_use_current_dir = os.path.dirname(os.path.abspath(__file__))
-main_use_project_root = os.path.dirname(os.path.dirname(main_use_current_dir))  # Go up two levels to reach AutoEnv root
+main_use_project_root = os.path.dirname(os.path.dirname(os.path.dirname(main_use_current_dir)))  # Go up three levels to reach repo root
 if main_use_project_root not in sys.path:
     sys.path.insert(0, main_use_project_root)
 """
@@ -677,7 +677,7 @@ Your Job: Generate comprehensive validated levels and perform integration testin
 
 2. **Quality Assurance** (SECONDARY TASKS):
    - Test with actual SolverAgent on a few levels:
-     * Use: `python ../../run_solver.py --env ENV_ID --level LEVEL_NAME --max-steps 5`
+     * Use: `python ../../../run_solver.py --env ENV_ID --level LEVEL_NAME --max-steps 5`
      * Replace ENV_ID with your environment folder name
      * Test with 2-3 different level files (not all 15)
    - Verify SolverAgent can interact without errors
