@@ -53,6 +53,13 @@ class LLMAdapter:
             model_kwargs={'temperature': getattr(llm.config, 'temperature', 0)}
         )
 
+    def get_template_vars(self) -> Dict[str, Any]:
+        """Return template variables for prompt rendering."""
+        return {
+            'model_name': self.config.model_name,
+            'temperature': self.config.model_kwargs.get('temperature', 0),
+        }
+
     def query(self, messages: List[Dict[str, str]], **kwargs) -> Dict[str, str]:
         """Query LLM with fallback handling."""
         params = {
