@@ -5,12 +5,12 @@ import os
 import re
 
 from pydantic import BaseModel, Field
-from autoenv.engine.logs import logger
+from base.engine.logs import logger
 
-from learn.modules.base.candidate import CandidateManager, Candidate, ComponentType
-from learn.modules.base.selection import Selection, SelectionType, CurrentBestSelection, ParetoFrontSelection
-from learn.modules.base.optimization import Optimization, OptSignalMode
-from learn.modules.base.evaluation import Evaluation, EvaluationMetric, EvaluationResult
+from learning.modules.base.candidate import CandidateManager, Candidate, ComponentType
+from learning.modules.base.selection import Selection, SelectionType, CurrentBestSelection, ParetoFrontSelection
+from learning.modules.base.optimization import Optimization, OptSignalMode
+from learning.modules.base.evaluation import Evaluation, EvaluationMetric, EvaluationResult
 
 
 class LearnerConfig(BaseModel):
