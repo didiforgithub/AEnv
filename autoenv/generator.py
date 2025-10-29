@@ -19,6 +19,13 @@ from base.engine.logs import logger
 from base.engine.async_llm import AsyncLLM
 from base.engine.utils import read_file_content, write_file_content, parse_xml_content, archive_files
 
+# Get project root directory for absolute path resolution
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+def get_base_file_path(filename: str) -> str:
+    """Get absolute path to base environment files."""
+    return os.path.join(PROJECT_ROOT, "base", "env", filename)
+
 class Generator(BaseAgent):
     name: str = Field(default="Generator")
     description: str = Field(default="An agent designed for generating environments.")
@@ -29,7 +36,6 @@ class Generator(BaseAgent):
     # Current environment id (time string)
     current_env_id: Optional[str] = Field(default=None)
     sub_code_agent: Optional[BaseAgent] = None # EcodeAgent can help refine the environments.
-    re_llm: Optional[AsyncLLM] = Field(default=None)
 
     async def step(self):
         """
@@ -52,7 +58,7 @@ class Generator(BaseAgent):
         env_desc_prompt = CRAFT_ENV_DESIGN_PROMPT.format(
             requirements=requirements,
         )
-        resp = await self.re_llm(env_desc_prompt)
+        resp = await self.llm(env_desc_prompt)
         env_desc_content = parse_xml_content(resp, "env_design")["env_design"]
         write_file_content(os.path.join(self.env_folder_path, "env_desc.txt"), env_desc_content)
         return env_desc_content
@@ -60,12 +66,12 @@ class Generator(BaseAgent):
     async def craft_env_yaml(self, env_desc):
         env_yaml_prompt = CRAFT_ENV_YAML_PROMPT.format(
             env_desc=env_desc,
-            config_yaml_example=read_file_content("autoenv/base/base_env_config.yaml"),
-            environment_abstraction=read_file_content("autoenv/base/base_env.py"),
-            observation_abstraction=read_file_content("autoenv/base/base_observation.py"),
-            generator_abstraction=read_file_content("autoenv/base/base_generator.py")
+            config_yaml_example=read_file_content(get_base_file_path("base_env_config.yaml")),
+            environment_abstraction=read_file_content(get_base_file_path("base_env.py")),
+            observation_abstraction=read_file_content(get_base_file_path("base_observation.py")),
+            generator_abstraction=read_file_content(get_base_file_path("base_generator.py"))
         )
-        resp = await self.re_llm(env_yaml_prompt)
+        resp = await self.llm(env_yaml_prompt)
         env_yaml_content = parse_xml_content(resp, "env_config")["env_config"]
         env_implement_help = parse_xml_content(resp, "env_implement_help")["env_implement_help"]
         write_file_content(os.path.join(self.env_folder_path, "config.yaml"), env_yaml_content)
@@ -77,9 +83,9 @@ class Generator(BaseAgent):
             env_desc=env_desc,
             config_yaml=read_file_content(os.path.join(self.env_folder_path, "config.yaml")),
             env_implement_help=read_file_content(os.path.join(self.env_folder_path, "env_implement.txt")),
-            environment_abstraction=read_file_content("autoenv/base/base_env.py"),
-            observation_abstraction=read_file_content("autoenv/base/base_observation.py"),
-            generator_abstraction=read_file_content("autoenv/base/base_generator.py"),
+            environment_abstraction=read_file_content(get_base_file_path("base_env.py")),
+            observation_abstraction=read_file_content(get_base_file_path("base_observation.py")),
+            generator_abstraction=read_file_content(get_base_file_path("base_generator.py")),
             env_folder_path=self.env_folder_path
         )
         resp = await self.llm(env_code_and_instruction_prompt, max_tokens=32768)
@@ -211,7 +217,6 @@ class Generator(BaseAgent):
             env_theme = "random"
         
         self._ensure_env_folder_initialized(env_theme)
-        
         env_desc = await self.craft_env_desc(requirements)
         await self.craft_env_yaml(env_desc)
         await self.craft_env_code_and_instruction(env_desc)
@@ -220,8 +225,6 @@ class Generator(BaseAgent):
         await self.generate_validated_levels()
         await self.calculate_max_rewards()
         
-        # Clean up directory by archiving auxiliary files
-        logger.info("Cleaning up environment directory...")
         self.archive_files()
         
         return self.env_folder_path

@@ -1,1 +1,18 @@
-# 给定环境需求之后的env gen yaml
+# Environment Generation Configuration
+
+# Mode: "single" or "parallel"
+# - single: Generate one environment using requirement_path
+# - parallel: Generate multiple environments from requirements_folder
+mode: "single"
+
+# LLM model name (from config/model_config.yaml)
+llm: "o3"
+
+# Concurrency limit for parallel mode
+count: 5
+
+# Folder containing requirement .txt files (for parallel mode)
+requirements_folder: "requirements"
+
+# Single requirement file path (for single mode)
+requirement_path: "tests/test_env.txt"
